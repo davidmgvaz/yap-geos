@@ -367,9 +367,15 @@ YAP_Bool c_test (void)
 
 #include "macros.h"
 
+inline void geos_yap_halt (int exit, void* stuff)
+{
+	finishGEOS();
+}
+
 void geos_yap_init (void)
 {
   initGEOS (warning, warning);
+  YAP_HaltRegisterHook (geos_yap_halt, NULL);
 
   /* For debug proposes only. */
   USER_C_CALLBACK (test, 2);
