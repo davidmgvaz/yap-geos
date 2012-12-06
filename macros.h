@@ -56,6 +56,7 @@ UNARY_FUNCTION (convex_hull, GEOSConvexHull)
 UNARY_FUNCTION (boundary, GEOSBoundary)
 UNARY_FUNCTION (point_on_surface, GEOSPointOnSurface)
 UNARY_FUNCTION (centroid, GEOSGetCentroid)
+UNARY_FUNCTION (union_cascaded, GEOSUnionCascaded)
 
 #define UNARY_BOOL_FUNCTION(procedure_name,procedure) \
 YAP_Bool c_##procedure_name (void) \

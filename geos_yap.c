@@ -193,6 +193,32 @@ YAP_Bool c_buffer (void)
   return (YAP_Unify (YAP_ARG3, term));
 }
 
+YAP_Bool c_equals_exact (void)
+{
+  char v;
+  geometry_t geometry1, geometry2;
+  YAP_Float tolerance;
+
+  if (Yap_IsNumberTerm (YAP_ARG3, &tolerance) == FALSE)
+    return (FALSE);
+  if (term_to_geometry (YAP_ARG1, &geometry1) == FALSE)
+    return (FALSE);
+  if (term_to_geometry (YAP_ARG2, &geometry2) == FALSE)
+  {
+	  GEOSGeom_destroy (geometry1);
+	  return (FALSE);
+  }
+  v = GEOSEqualsExact (geometry1, geometry2, tolerance);
+  GEOSGeom_destroy (geometry1);
+  GEOSGeom_destroy (geometry2);
+
+  if (v == 1)
+    return (TRUE);
+  else if (v == 2)
+    warning ("exception");
+  return (FALSE);
+}
+
 #if GEOS_VERSION_MAJOR == 3
 YAP_Bool c_area (void)
 {
@@ -404,6 +430,8 @@ void geos_yap_init (void)
   USER_C_CALLBACK (boundary, 2);
   USER_C_CALLBACK (point_on_surface, 2);
   USER_C_CALLBACK (centroid, 2);
+  USER_C_CALLBACK (union_cascaded, 2);
+
 
   /* Unary boolean. */
   USER_C_CALLBACK (is_empty, 1);
@@ -411,6 +439,7 @@ void geos_yap_init (void)
   USER_C_CALLBACK (is_ring, 1);
 
   USER_C_CALLBACK (buffer, 3);
+  USER_C_CALLBACK (equals_exact, 3);
   USER_C_CALLBACK (convex_hull, 2);
 
 #if GEOS_VERSION_MAJOR == 3
