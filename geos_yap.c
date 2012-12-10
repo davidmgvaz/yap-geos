@@ -391,6 +391,53 @@ YAP_Bool c_test (void)
   return (YAP_Unify (YAP_ARG2, term));
 }
 
+/* tag (or type) for new objects */
+static YAP_opaque_tag_t ntag;
+
+YAP_Bool c_opaque_new (void)
+{
+  geometry_t geometry, *ng;
+  YAP_Term term;
+
+  if (term_to_geometry (YAP_ARG1, &geometry) == FALSE)
+    return (FALSE);
+
+  term = YAP_NewOpaqueObject(ntag, sizeof(&geometry));
+  ng = (geometry_t *) YAP_OpaqueObjectFromTerm(term);
+  *ng = geometry;
+
+  fprintf(stderr,"term=%p ng=%p geometry=%p \n",term, *ng, geometry);
+
+  return (YAP_Unify (YAP_ARG2, term));
+}
+
+YAP_Bool c_opaque_delete (void *g)
+{
+  geometry_t geometry;
+
+  geometry = *((geometry_t *) g);
+  fprintf(stderr,"delete *g=%p\n",geometry);
+  GEOSGeom_destroy (geometry);
+  return TRUE;
+}
+
+YAP_Bool c_opaque_print (void *stream, YAP_opaque_tag_t type, void *g, int flags)
+{
+  geometry_t geometry;
+  char *wkt;
+
+  geometry = *((geometry_t *) g);
+  fprintf(stderr,"print *g=%p\n",geometry);
+
+  wkt = GEOSGeomToWKT((geometry_t)g);
+  if (wkt == NULL)
+	  return (FALSE);
+  printf("%s",wkt);
+  free(wkt);
+
+  return TRUE;
+}
+
 #include "macros.h"
 
 inline void geos_yap_halt (int exit, void* stuff)
@@ -402,6 +449,13 @@ void geos_yap_init (void)
 {
   initGEOS (warning, warning);
   YAP_HaltRegisterHook (geos_yap_halt, NULL);
+
+  /* opaque tests*/
+  YAP_opaque_handler_t oh;
+  oh.fail_handler = c_opaque_delete;
+  oh.write_handler = c_opaque_print;
+  ntag = YAP_NewOpaqueType(&oh);
+  YAP_UserCPredicate("opaque_new", c_opaque_new, 2);
 
   /* For debug proposes only. */
   USER_C_CALLBACK (test, 2);
